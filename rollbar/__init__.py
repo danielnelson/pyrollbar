@@ -804,8 +804,11 @@ def _walk_trace_chain(cls, exc, trace):
     seen_exceptions = {exc}
 
     while True:
-        exc = getattr(exc, '__cause__', None) or getattr(exc, '__context__', None)
-        if not exc:
+        if exc.__cause__ is not None:
+            exc = exc.__cause__
+        elif exc.__context__ is not None and not exc.__suppress_context__:
+            exc = exc.__context__
+        else:
             break
         trace_chain.append(_trace_data(type(exc), exc, getattr(exc, '__traceback__', None)))
         if exc in seen_exceptions:
